@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>be.group16</groupId>
-    <artifactId>finance</artifactId>
+    <artifactId>forum</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>finance</name>
-    <description>finance</description>
+    <name>forum</name>
+    <description>forum</description>
     <url/>
     <licenses>
         <license/>
