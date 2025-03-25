@@ -7,10 +7,14 @@ import java.util.Set;
 import java.util.HashMap;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Entity
+@Schema(description = "User entity")
 @Table(name = "users")
 public class User {
 

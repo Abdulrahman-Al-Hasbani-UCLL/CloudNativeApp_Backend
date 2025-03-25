@@ -15,11 +15,6 @@ public class ForumApplication {
         SpringApplication.run(ForumApplication.class, args);
     }
 
-    // @Bean
-    // public PasswordEncoder passwordEncoder() {
-    //     return new BCryptPasswordEncoder();
-    // }                                            //nodig voor encryptie later
-
     @Bean
     public CommandLineRunner dataLoader(UserRepository userRepository) {
         return args -> {
@@ -28,7 +23,6 @@ public class ForumApplication {
             System.out.println("=================================\n");
             
             try {
-                // Check if users already exist
                 if (userRepository.findByUsername("admin").isEmpty()) {
                     User admin = new User();
                     admin.setUsername("admin");
