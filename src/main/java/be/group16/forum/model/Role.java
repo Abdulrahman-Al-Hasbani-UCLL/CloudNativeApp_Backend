@@ -1,33 +1,47 @@
 package be.group16.forum.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 import java.util.HashMap;
 import java.util.Map;
 
-@Entity
-@Table(name = "roles")
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+@Document(collection = "roles")
 public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(nullable = false, unique = true)
+    @Field("name")
+    @NotNull
+    @Size(max = 100)    
     private String name;
 
+    @Field("description")
+    @Size(max = 500)
     private String description;
 
+    @Field("color")
+    @Size(max = 7) //Voor Hex kleur
     private String color;
 
-    @ElementCollection
-    @CollectionTable(name = "role_extended_data", joinColumns = @JoinColumn(name = "role_id"))
-    @Column(name = "data")
+    // @ElementCollection
+    // @CollectionTable(name = "role_extended_data", joinColumns = @JoinColumn(name = "role_id"))
+    // @Column(name = "data")
+    @Field("extendedData")
     private Map<String, Object> extendedData = new HashMap<>();
 
-    @Column(nullable = false, updatable = false)
+    @Field("createdAt")
+    @NotNull
     private String createdAt;
 
-    @Column(nullable = false)
+    @Field("updatedAt")
+    @NotNull
     private String updatedAt;
 
     public Role() {
