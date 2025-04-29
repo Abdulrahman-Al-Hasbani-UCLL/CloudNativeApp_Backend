@@ -6,83 +6,56 @@ import java.util.Map;
 import java.util.Set;
 import java.util.HashMap;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
-
-@Entity
-@Schema(description = "Post entity")
-@Table(name = "post")
+@Document(collection = "posts")
 public class Post {
-    /*{
-    "id": "string",
-    "body": "string",
-    "userId": "string",
-    "threadId": "string",
-    "parentId": "string",
-    "bestAnswer": true,
-    "likes": [
-      {
-        "id": "string",
-        "userId": "string"
-      }
-    ],
-    "upvotes": [
-      {
-        "id": "string",
-        "userId": "string"
-      }
-    ],
-    "extendedData": {},
-    "instanceId": "string",
-    "createdAt": "string",
-    "updatedAt": "string"
-  }*/
+    
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(nullable = false, unique = true)
+    @Field("body")
     private String body;
 
-    @Column(nullable = false, unique = true)
+    @Field("userId")
     private String userId;
 
-    @Column(nullable = false, unique = true)
+    @Field("threadId")
     private String threadId;
 
-    @Column(nullable = true, unique = true)
+    @Field("parentId")
     private String parentId;
 
-    @Column(nullable = false, unique = true)
+    @Field("bestAnswer")
     private boolean bestAnswer;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore
+    @Field("likes")
     private Set<Like> likes = new HashSet<>();
-    
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore
+
+    @Field("upvotes")
     private Set<Upvote> upvotes = new HashSet<>();
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+
+    @Field("extendedData")
     private Map<String, Object> extendedData = new HashMap<>();
 
-    @Column(nullable = false, unique = true)
+    @Field("instanceId")
     private String instanceId;
-    @Column(nullable = false, unique = true)
+
+    @Field("createdAt")
     private String createdAt;
 
-    @Column(nullable = false, unique = true)
+    @Field("updatedAt")
     private String updatedAt;
+
     public Post() {
     }
 
-    public Post(String id, String body, String userId, String threadId, String parentId, boolean bestAnswer, Set<Like> likes, Set<Upvote> upvotes, Map<String, Object> extendedData, String instanceId, String createdAt, String updatedAt) {
+    public Post(String id, String body, String userId, String threadId, String parentId,
+                boolean bestAnswer, Set<Like> likes, Set<Upvote> upvotes,
+                Map<String, Object> extendedData, String instanceId,
+                String createdAt, String updatedAt) {
         this.id = id;
         this.body = body;
         this.userId = userId;
@@ -192,8 +165,4 @@ public class Post {
     public void setUpdatedAt(String updatedAt) {
         this.updatedAt = updatedAt;
     }
-
-    
-
-
 }
