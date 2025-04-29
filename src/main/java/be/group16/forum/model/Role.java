@@ -4,8 +4,9 @@ import jakarta.persistence.*;
 import java.util.HashMap;
 import java.util.Map;
 
-@Entity
-@Table(name = "roles")
+import org.springframework.data.mongodb.core.mapping.Document;
+
+@Document(collection = "roles")
 public class Role {
 
     @Id
