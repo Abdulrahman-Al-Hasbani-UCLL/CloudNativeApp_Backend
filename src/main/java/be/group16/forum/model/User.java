@@ -11,42 +11,53 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 @Document(collection = "users")
 public class User {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(nullable = false, unique = true)
+    @Field("username")
+    @NotNull
+    @Size(max = 50)
     private String username;
 
-    @Column(nullable = false, unique = true)
+    @Field("email")
+    @NotNull
+    @Email
     private String email;
 
     private String displayName;
 
     @JsonIgnore
-    @Column(nullable = false)
+    @NotNull
+    @Size(min = 8)
     private String password;
 
     private Boolean emailVerified = false;
 
     private String image;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "role")
+    // Pas aan zodat roles geen relatie meer heeft
+    @Field(name = "roles")
     private Set<String> roles = new HashSet<>();
 
-    @Column(length = 1000)
+    @Size(max = 1000)
     private String bio;
 
     private String signature;
 
     private String url;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "VARCHAR")
+    // @JdbcTypeCode(SqlTypes.JSON)
+    // @Column(columnDefinition = "VARCHAR")
     private Map<String, Object> extendedData = new HashMap<>();
 
     public User() {
