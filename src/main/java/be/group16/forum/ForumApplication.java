@@ -15,6 +15,7 @@ public class ForumApplication {
         SpringApplication.run(ForumApplication.class, args);
     }
 
+    @SuppressWarnings("unused")
     @Bean
     public CommandLineRunner dataLoader(UserRepository userRepository) {
         return args -> {
@@ -51,6 +52,7 @@ public class ForumApplication {
             
             System.out.println("\n=================================");
             System.out.println("Forum Application started!");
+            System.out.println("Go to:\n\t http://localhost:8000/swagger-ui/index.html");
             System.out.println("=================================\n");
         };
     }
