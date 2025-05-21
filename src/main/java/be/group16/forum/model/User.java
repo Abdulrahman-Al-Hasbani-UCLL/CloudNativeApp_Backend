@@ -56,6 +56,9 @@ public class User {
 
     private String url;
 
+    @Field("reputation")
+    private int reputation = 0;
+
     // @JdbcTypeCode(SqlTypes.JSON)
     // @Column(columnDefinition = "VARCHAR")
     private Map<String, Object> extendedData = new HashMap<>();
@@ -185,5 +188,17 @@ public class User {
 
     public Object getExtendedDataValue(String key) {
         return this.extendedData.get(key);
+    }
+
+    public void setRoles(Set<String> roles) {
+        this.roles = roles;
+    }
+
+    public int getReputation() {
+        return reputation;
+    }
+
+    public void setReputation(int reputation) {
+        this.reputation = reputation;
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -66,6 +67,39 @@ public class PostController {
             return ResponseEntity.ok().body("Post deleted");
         } else {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    // POST /posts/{postId}/like
+    @PostMapping("/posts/{postId}/like")
+    public ResponseEntity<?> likePost(@PathVariable String postId, @RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401)
+                    .body(Map.of("success", false, "message", "Missing or invalid Authorization header"));
+        }
+        String token = authHeader.substring(7);
+        boolean success = postService.likePost(postId, token);
+        if (success) {
+            return ResponseEntity.ok(Map.of("success", true, "message", "Post liked"));
+        } else {
+            return ResponseEntity.status(400).body(Map.of("success", false, "message", "Could not like post"));
+        }
+    }
+
+    // DELETE /posts/{postId}/like
+    @DeleteMapping("/posts/{postId}/like")
+    public ResponseEntity<?> unlikePost(@PathVariable String postId,
+            @RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401)
+                    .body(Map.of("success", false, "message", "Missing or invalid Authorization header"));
+        }
+        String token = authHeader.substring(7);
+        boolean success = postService.unlikePost(postId, token);
+        if (success) {
+            return ResponseEntity.ok(Map.of("success", true, "message", "Like removed"));
+        } else {
+            return ResponseEntity.status(400).body(Map.of("success", false, "message", "Could not remove like"));
         }
     }
 }

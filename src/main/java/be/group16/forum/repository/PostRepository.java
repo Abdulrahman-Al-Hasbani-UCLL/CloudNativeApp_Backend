@@ -1,6 +1,7 @@
 package be.group16.forum.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -11,4 +12,6 @@ import be.group16.forum.model.Post;
 @Repository
 public interface PostRepository extends MongoRepository<Post, String> {
     List<Post> findByThreadId(String threadId, Pageable pageable);
+
+    Optional<Post> findByBodyAndThreadId(String postBody, String id);
 }

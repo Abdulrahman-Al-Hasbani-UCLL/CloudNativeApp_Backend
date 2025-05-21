@@ -1,5 +1,8 @@
 package be.group16.forum.model;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -27,7 +30,7 @@ public class Like {
     private boolean dislike;
     
     @Field("extendedData")
-    private Object extendedData = new Object();
+    private Map<String, Object> extendedData = new HashMap<>();
 
     @Field("createdAt")
     private String createdAt;
@@ -38,7 +41,7 @@ public class Like {
     public Like() {
     }
 
-    public Like(String id, String userId, String threadId, String postId, boolean dislike, Object extendedData,
+    public Like(String id, String userId, String threadId, String postId, boolean dislike, Map<String, Object> extendedData,
             String createdAt, String updatedAt) {
         this.id = id;
         this.userId = userId;
@@ -94,7 +97,7 @@ public class Like {
         return extendedData;
     }
 
-    public void setExtendedData(Object extendedData) {
+    public void setExtendedData(Map<String, Object> extendedData) {
         this.extendedData = extendedData;
     }
 
@@ -113,8 +116,4 @@ public class Like {
     public void setUpdatedAt(String updatedAt) {
         this.updatedAt = updatedAt;
     }
-
-    
-
-
 }
