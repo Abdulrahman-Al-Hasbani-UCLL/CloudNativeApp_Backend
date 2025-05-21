@@ -11,9 +11,9 @@ import java.util.List;
 
 @Service
 public class UserService {
-    
+
     private final UserRepository userRepository;
-    
+
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
@@ -22,35 +22,37 @@ public class UserService {
         if (userRepository.existsByUsername(user.getUsername())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is already taken");
         }
-        
+
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is already registered");
         }
-        
+
         if (user.getDisplayName() == null || user.getDisplayName().trim().isEmpty()) {
             user.setDisplayName(user.getUsername());
         }
-        
+
         user.addRole("user");
-        
+
         return userRepository.save(user);
     }
-    
+
     public User findUserById(String id) {
         return userRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id));
     }
-    
+
     public User findUserByUsername(String username) {
         return userRepository.findByUsername(username)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with username: " + username));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "User not found with username: " + username));
     }
 
     public User findUserByEmail(String email) {
         return userRepository.findByEmail(email)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with email: " + email));
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with email: " + email));
     }
-    
+
     public boolean existsByUsername(String username) {
         return userRepository.existsByUsername(username);
     }
@@ -58,20 +60,20 @@ public class UserService {
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
-    
+
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
         userRepository.findAll().forEach(users::add);
         return users;
     }
-    
+
     public List<User> getVerifiedUsers() {
         return userRepository.findByEmailVerifiedTrue();
     }
-    
+
     public User updateUser(String id, User updatedUser) {
         User existingUser = findUserById(id);
-        
+
         if (updatedUser.getDisplayName() != null) {
             existingUser.setDisplayName(updatedUser.getDisplayName());
         }
@@ -87,39 +89,56 @@ public class UserService {
         if (updatedUser.getUrl() != null) {
             existingUser.setUrl(updatedUser.getUrl());
         }
-        
+        existingUser.setReputation(updatedUser.getReputation());
+
         return userRepository.save(existingUser);
     }
-    
+
     public void updatePassword(String id, String currentPassword, String newPassword) {
         User user = findUserById(id);
         user.setPassword(newPassword);
-        
+
         userRepository.save(user);
     }
-    
+
     public User verifyEmail(String id) {
         User user = findUserById(id);
         user.setEmailVerified(true);
         return userRepository.save(user);
     }
-    
+
     public User addRole(String id, String role) {
         User user = findUserById(id);
         user.addRole(role);
         return userRepository.save(user);
     }
-    
+
     public User removeRole(String id, String role) {
         User user = findUserById(id);
         user.removeRole(role);
         return userRepository.save(user);
     }
-    
+
     public void deleteUser(String id) {
         if (!userRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id);
         }
         userRepository.deleteById(id);
+    }
+
+    public String getUserIdFromToken(String userToken) {
+        try {
+            String[] parts = userToken.split("\\.");
+            if (parts.length != 3) {
+                throw new IllegalArgumentException("Invalid JWT token format");
+            }
+            String payload = new String(java.util.Base64.getUrlDecoder().decode(parts[1]));
+            com.fasterxml.jackson.databind.JsonNode jsonNode = new com.fasterxml.jackson.databind.ObjectMapper()
+                    .readTree(payload);
+            String username = jsonNode.get("sub").asText();
+            return findUserByUsername(username).getId();
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token", e);
+        }
     }
 }
