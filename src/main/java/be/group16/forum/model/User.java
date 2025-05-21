@@ -127,13 +127,13 @@ public class User {
 
     public void setImage(String image) {
         this.image = image;
-        }
+    }
 
-        public String[] getRoles() {
+    public String[] getRoles() {
         return roles.toArray(new String[0]);
-        }
+    }
 
-        public void setRoles(String[] roleArray) {
+    public void setRoles(String[] roleArray) {
         this.roles.clear();
         if (roleArray != null) {
             for (String role : roleArray) {
@@ -188,10 +188,6 @@ public class User {
 
     public Object getExtendedDataValue(String key) {
         return this.extendedData.get(key);
-    }
-
-    public void setRoles(Set<String> roles) {
-        this.roles = roles;
     }
 
     public int getReputation() {

@@ -169,7 +169,7 @@ public class DBInitializer implements CommandLineRunner {
         // 3. Create posts for each thread (random amount, some threads with none)
         List<Post> allPosts = new ArrayList<>();
         for (Thread thread : threads) {
-            int postCount = rand.nextInt(8); // 0-7 posts per thread
+            int postCount = rand.nextInt(8);
             Set<Integer> usedUserIndexes = new HashSet<>();
             for (int j = 0; j < postCount; j++) {
                 int userIdx;

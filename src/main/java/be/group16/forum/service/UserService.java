@@ -136,7 +136,7 @@ public class UserService {
             com.fasterxml.jackson.databind.JsonNode jsonNode = new com.fasterxml.jackson.databind.ObjectMapper()
                     .readTree(payload);
             String username = jsonNode.get("sub").asText();
-            return findUserByUsername(username).getUsername();
+            return findUserByUsername(username).getId();
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token", e);
         }
