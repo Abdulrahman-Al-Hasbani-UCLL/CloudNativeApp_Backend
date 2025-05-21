@@ -66,4 +66,25 @@ public class ThreadService {
         }
         return false;
     }
+
+    // Search for a Thread
+    public List<Thread> searchThreads(String query, int page, int pageSize) {
+        try {
+            if (page < 0)
+                page = 0;
+            if (pageSize <= 0)
+                pageSize = 10;
+
+            if (query == null || query.trim().isEmpty()) {
+                return threadRepository.findAll(PageRequest.of(page, pageSize)).getContent();
+            }
+            List<Thread> result = threadRepository.findByTitleContainingIgnoreCaseOrBodyContainingIgnoreCase(
+                    query, query, PageRequest.of(page, pageSize));
+            return result != null ? result : List.of();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e);
+            return List.of();
+        }
+    }
 }

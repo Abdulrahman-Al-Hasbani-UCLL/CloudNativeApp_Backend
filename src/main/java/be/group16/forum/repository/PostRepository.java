@@ -6,9 +6,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
-import be.group16.forum.model.Thread;
+import be.group16.forum.model.Post;
 
 @Repository
-public interface ThreadRepository extends MongoRepository<Thread, String> {
-    List<Thread> findByTitleContainingIgnoreCaseOrBodyContainingIgnoreCase(String title, String body, Pageable pageable);
+public interface PostRepository extends MongoRepository<Post, String> {
+    List<Post> findByThreadId(String threadId, Pageable pageable);
 }
