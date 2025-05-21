@@ -1,31 +1,48 @@
 package be.group16.forum.controller;
 
+import be.group16.forum.model.Thread;
+import be.group16.forum.service.ThreadService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/search")
+@RequestMapping("/api/search")
 public class SearchController {
 
-    @PostMapping("/{query}")
+    @Autowired
+    private ThreadService threadService;
+
+    @PostMapping
     public ResponseEntity<Map<String, Object>> search(
-            @PathVariable String query,
-            @RequestParam String type,
-            @RequestBody(required = false) Map<String, Object> body) {
+            @RequestBody Map<String, String> payload,
+            @RequestParam(defaultValue = "1") int page) {
 
-        // Mock response for demonstration purposes the other things have to be finished so that this can work
-        Map<String, Object> response = Map.of(
-                "type", type,
-                "query", query,
-                "tags", Map.of(),
-                "posts", Map.of(),
-                "threads", Map.of(),
-                "users", Map.of(),
-                "nextCursor", "string"
-        );
+        String query = payload.get("query");
+        String type = payload.get("type");
+        int pageSize = 10;
 
-        return ResponseEntity.ok(response);
+        if (type == null)
+            type = "";
+        if (query == null)
+            query = "";
+
+        if ("threads".equalsIgnoreCase(type)) {
+            List<Thread> threads = threadService.searchThreads(query, page - 1, pageSize);
+            if (threads == null)
+                threads = List.of();
+            return ResponseEntity.ok(Map.of(
+                    "threads", threads,
+                    "type", type,
+                    "query", query,
+                    "nextCursor", threads.size() == pageSize ? page + 1 : null));
+        }
+
+        // Add this to handle unsupported types and ensure a return value
+        return ResponseEntity.badRequest().body(Map.of(
+                "error", "Unsupported search type: " + type));
     }
 }

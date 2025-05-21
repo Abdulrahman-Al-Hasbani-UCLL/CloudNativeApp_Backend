@@ -1,5 +1,8 @@
 package be.group16.forum.model;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -68,7 +71,7 @@ public class Thread {
     private String updatedAt;
 
     @Field("extendedData")
-    private Object extendedData = new Object();
+    private Map<String, Object> extendedData = new HashMap<>();
     
     public Thread() {
     }
@@ -167,11 +170,11 @@ public class Thread {
         this.updatedAt = updatedAt;
     }
 
-    public Object getExtendedData() {
+    public Map<String, Object> getExtendedData() {
         return extendedData;
     }
 
-    public void setExtendedData(Object extendedData) {
+    public void setExtendedData(Map<String, Object> extendedData) {
         this.extendedData = extendedData;
     }
 
