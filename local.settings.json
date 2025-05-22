@@ -1,0 +1,16 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "java",
+    "COSMOSDB_URI": "mongodb://localhost:27017/cloudnativeapp_dev"
+  },
+  "Host": {
+    "LocalHttpPort": 7071,
+    "CORS": "*",
+    "CORSCredentials": false
+  },
+  "ConnectionStrings": {
+    "mongodbConnectionString": "mongodb://localhost:27017/cloudnativeapp_dev"
+  }
+}
