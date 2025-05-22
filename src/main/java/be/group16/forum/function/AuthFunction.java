@@ -29,9 +29,19 @@ public class AuthFunction {
 
     @FunctionName("login")
     public HttpResponseMessage login(
-        @HttpTrigger(name = "req", methods = {HttpMethod.POST}, route = "auth/login", authLevel = AuthorizationLevel.ANONYMOUS)
-        HttpRequestMessage<LoginInput> request,
-        final ExecutionContext context) {
+            @HttpTrigger(name = "req", methods = {
+                    HttpMethod.POST,
+                    HttpMethod.OPTIONS }, route = "auth/login", authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<LoginInput> request,
+            final ExecutionContext context) {
+        String allowedOrigin = System.getenv("ALLOWED_ORIGIN");
+
+        if (request.getHttpMethod() == HttpMethod.OPTIONS) {
+            return request.createResponseBuilder(HttpStatus.NO_CONTENT)
+                    .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
+                    .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                    .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                    .build();
+        }
 
         LoginInput loginInput = request.getBody();
         String login = loginInput.getLogin();
@@ -50,24 +60,44 @@ public class AuthFunction {
         String token = jwtUtil.generateToken(user.getUsername());
         Map<String, String> response = new HashMap<>();
         response.put("token", token);
-        return request.createResponseBuilder(HttpStatus.OK).body(response).build();
+        return request.createResponseBuilder(HttpStatus.OK)
+                .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
+                .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                .body(response)
+                .build();
     }
 
     @FunctionName("register")
     public HttpResponseMessage register(
-        @HttpTrigger(name = "req", methods = {HttpMethod.POST}, route = "auth/register", authLevel = AuthorizationLevel.ANONYMOUS)
-        HttpRequestMessage<RegisterInput> request,
-        final ExecutionContext context) {
-
+            @HttpTrigger(name = "req", methods = {
+                    HttpMethod.POST,
+                    HttpMethod.OPTIONS }, route = "auth/register", authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<RegisterInput> request,
+            final ExecutionContext context) {
+        String allowedOrigin = System.getenv("ALLOWED_ORIGIN");
         RegisterInput newUser = request.getBody();
+
+        if (request.getHttpMethod() == HttpMethod.OPTIONS) {
+            return request.createResponseBuilder(HttpStatus.NO_CONTENT)
+                    .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
+                    .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                    .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                    .build();
+        }
 
         if (userRepository.existsByUsername(newUser.getUsername())) {
             return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                    .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
+                    .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                    .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
                     .body(Map.of("error", "Username is already taken"))
                     .build();
         }
         if (userRepository.existsByEmail(newUser.getEmail())) {
             return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                    .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
+                    .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                    .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
                     .body(Map.of("error", "Email is already registered"))
                     .build();
         }
@@ -91,6 +121,10 @@ public class AuthFunction {
 
         User savedUser = userService.registerUser(user);
 
-        return request.createResponseBuilder(HttpStatus.OK).body(savedUser).build();
+        return request.createResponseBuilder(HttpStatus.OK)
+                .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
+                .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                .body(savedUser).build();
     }
 }
