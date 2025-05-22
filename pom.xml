@@ -28,8 +28,20 @@
     </scm>
     <properties>
         <java.version>21</java.version>
+        <start-class>be.be.group16.forum</start-class>
+        <azure.functions.maven.plugin.version>1.38.0</azure.functions.maven.plugin.version>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>com.microsoft.azure.functions</groupId>
+            <artifactId>azure-functions-java-library</artifactId>
+            <version>3.1.1-alpha</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-function-adapter-azure</artifactId>
+            <version>4.2.2</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
@@ -90,38 +102,42 @@
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.8.6</version>
         </dependency>
-        <dependency>
-            <groupId>com.microsoft.azure.functions</groupId>
-            <artifactId>azure-functions-java-library</artifactId>
-            <version>3.1.1-alpha</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-function-adapter-azure</artifactId>
-            <version>4.2.2</version>
-        </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <!-- Disable Spring Boot repackage so Azure plugin can stage correctly -->
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <executions>
+                <execution>
+                <goals><goal>repackage</goal></goals>
+                <configuration><skip>true</skip></configuration>
+                </execution>
+            </executions>
             </plugin>
-            <!-- Azure Functions Maven Plugin -->
+            <!-- Azure Functions Maven plugin -->
             <plugin>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-functions-maven-plugin</artifactId>
-                <version>1.19.0</version>
-                <configuration>
-                    <resourceGroup>CloNat16</resourceGroup>
-                    <appName>forum-Y-func</appName>
-                    <region>westeurope</region>
-                    <runtime>
-                        <os>windows</os>
-                        <javaVersion>21</javaVersion>
-                    </runtime>
-                </configuration>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-functions-maven-plugin</artifactId>
+            <version>${azure.functions.maven.plugin.version}</version>
+            <configuration>
+                <appName>forum-Y-func</appName>
+                <runtime>
+                    <os>windows</os>
+                    <javaVersion>java21</javaVersion>
+                </runtime>
+                <hostJson>${project.basedir}/src/main/resources/host.json</hostJson>
+            </configuration>
+            <executions>
+                <execution>
+                <id>package-functions</id>
+                <goals>
+                    <goal>package</goal>
+                </goals>
+                </execution>
+            </executions>
             </plugin>
         </plugins>
     </build>
