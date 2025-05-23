@@ -87,4 +87,8 @@ public class ThreadService {
             return List.of();
         }
     }
+
+    public List<Thread> fetchRandomThreads(int i) {
+        return threadRepository.findRandomThreads(i);
+    }
 }

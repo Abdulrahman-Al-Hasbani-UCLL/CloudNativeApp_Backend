@@ -66,7 +66,7 @@ public class DBInitializer implements CommandLineRunner {
                 input = future.get(10, java.util.concurrent.TimeUnit.SECONDS);
             } catch (java.util.concurrent.TimeoutException e) {
                 System.out.println("\nNo input received in 10 seconds. Proceeding with database initialization.");
-                input = "yes";
+                input = "no"; // Default to no so that database isn't resetted after each function call
             } finally {
                 executor.shutdownNow();
             }
