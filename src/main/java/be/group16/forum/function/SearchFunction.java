@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.HashMap;
 
 @Component
 public class SearchFunction {
@@ -49,15 +50,20 @@ public class SearchFunction {
             List<Thread> threads = threadService.searchThreads(query, page - 1, pageSize);
             if (threads == null)
                 threads = List.of();
+
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("threads", threads);
+            responseMap.put("type", type);
+            responseMap.put("query", query);
+            if (threads.size() == pageSize) {
+                responseMap.put("nextCursor", page + 1);
+            }
+
             return request.createResponseBuilder(HttpStatus.OK)
                     .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
                     .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
                     .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
-                    .body(Map.of(
-                            "threads", threads,
-                            "type", type,
-                            "query", query,
-                            "nextCursor", threads.size() == pageSize ? page + 1 : null))
+                    .body(responseMap)
                     .build();
         }
 

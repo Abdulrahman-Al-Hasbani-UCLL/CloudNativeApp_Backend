@@ -130,4 +130,8 @@ public class PostService {
 
         return true;
     }
+
+    public List<Post> fetchRandomPosts(int i) {
+        return postRepository.findRandomPosts(i);
+    }
 }

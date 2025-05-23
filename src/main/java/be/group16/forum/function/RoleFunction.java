@@ -14,15 +14,19 @@ public class RoleFunction {
     @Autowired
     private RoleService roleService;
 
-    @FunctionName("getRoleById")
-    public HttpResponseMessage getRoleById(
-            @HttpTrigger(name = "req", methods = { HttpMethod.GET,
-                    HttpMethod.OPTIONS }, route = "role/{id}", authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> request,
+    @FunctionName("roleById")
+    public HttpResponseMessage roleById(
+            @HttpTrigger(name = "req", methods = {
+                    HttpMethod.GET, HttpMethod.PUT, HttpMethod.DELETE, HttpMethod.OPTIONS
+            }, route = "role/{id}", authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<Role>> request,
             @BindingName("id") String id,
             final ExecutionContext context) {
-        String allowedOrigin = System.getenv("ALLOWED_ORIGIN");
 
-        if (request.getHttpMethod() == HttpMethod.OPTIONS) {
+        String allowedOrigin = System.getenv("ALLOWED_ORIGIN");
+        HttpMethod method = request.getHttpMethod();
+
+        // Handle CORS preflight
+        if (method == HttpMethod.OPTIONS) {
             return request.createResponseBuilder(HttpStatus.NO_CONTENT)
                     .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
                     .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
@@ -30,54 +34,37 @@ public class RoleFunction {
                     .build();
         }
 
-        Role role = roleService.getRoleById(id);
-        return request.createResponseBuilder(HttpStatus.OK)
-                .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
-                .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
-                .header("Access-Control-Allow-Headers", "Content-Type,Authorization").body(role).build();
-    }
-
-    @FunctionName("updateRoleById")
-    public HttpResponseMessage updateRoleById(
-            @HttpTrigger(name = "req", methods = { HttpMethod.PUT,
-                    HttpMethod.OPTIONS }, route = "role/{id}", authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<Role>> request,
-            @BindingName("id") String id,
-            final ExecutionContext context) {
-        String allowedOrigin = System.getenv("ALLOWED_ORIGIN");
-
-        if (request.getHttpMethod() == HttpMethod.OPTIONS) {
-            return request.createResponseBuilder(HttpStatus.NO_CONTENT)
+        // GET /role/{id}
+        if (method == HttpMethod.GET) {
+            Role role = roleService.getRoleById(id);
+            return request.createResponseBuilder(HttpStatus.OK)
                     .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
                     .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
                     .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
-                    .build();
+                    .body(role).build();
         }
-        Role updatedRole = request.getBody().orElse(null);
-        if (updatedRole == null) {
-            return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+
+        // PUT /role/{id}
+        if (method == HttpMethod.PUT) {
+            Role updatedRole = request.getBody().orElse(null);
+            if (updatedRole == null) {
+                return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                        .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
+                        .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                        .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                        .body("Missing role data").build();
+            }
+            Role role = roleService.updateRole(id, updatedRole);
+            return request.createResponseBuilder(HttpStatus.OK)
                     .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
                     .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
-                    .header("Access-Control-Allow-Headers", "Content-Type,Authorization").body("Missing role data")
-                    .build();
+                    .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                    .body(role).build();
         }
 
-        Role role = roleService.updateRole(id, updatedRole);
-        return request.createResponseBuilder(HttpStatus.OK)
-                .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
-                .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
-                .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
-                .body(role).build();
-    }
-
-    @FunctionName("deleteRoleById")
-    public HttpResponseMessage deleteRoleById(
-            @HttpTrigger(name = "req", methods = { HttpMethod.DELETE,
-                    HttpMethod.OPTIONS }, route = "role/{id}", authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> request,
-            @BindingName("id") String id,
-            final ExecutionContext context) {
-        String allowedOrigin = System.getenv("ALLOWED_ORIGIN");
-
-        if (request.getHttpMethod() == HttpMethod.OPTIONS) {
+        // DELETE /role/{id}
+        if (method == HttpMethod.DELETE) {
+            roleService.deleteRoleById(id);
             return request.createResponseBuilder(HttpStatus.NO_CONTENT)
                     .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
                     .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
@@ -85,11 +72,12 @@ public class RoleFunction {
                     .build();
         }
 
-        roleService.deleteRoleById(id);
-        return request.createResponseBuilder(HttpStatus.NO_CONTENT)
+        // Method not allowed
+        return request.createResponseBuilder(HttpStatus.METHOD_NOT_ALLOWED)
                 .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
                 .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
                 .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                .body("Method not allowed")
                 .build();
     }
 

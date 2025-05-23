@@ -50,6 +50,31 @@ public class ThreadFunction {
                 .build();
     }
 
+    @FunctionName("getRandomThreads")
+    public HttpResponseMessage getRandomThreads(
+            @HttpTrigger(name = "req", methods = { HttpMethod.GET,
+                    HttpMethod.OPTIONS }, route = "threads/random", authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> request,
+            final ExecutionContext context) {
+
+        String allowedOrigin = System.getenv("ALLOWED_ORIGIN");
+
+        if (request.getHttpMethod() == HttpMethod.OPTIONS) {
+            return request.createResponseBuilder(HttpStatus.NO_CONTENT)
+                    .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
+                    .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                    .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                    .build();
+        }
+
+        List<Thread> latestThreads = threadService.fetchRandomThreads(5);
+        return request.createResponseBuilder(HttpStatus.OK)
+                .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
+                .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                .body(Map.of("threads", latestThreads))
+                .build();
+    }
+
     @FunctionName("createThread")
     public HttpResponseMessage createThread(
             @HttpTrigger(name = "req", methods = { HttpMethod.POST,
@@ -85,44 +110,18 @@ public class ThreadFunction {
                 .header("Access-Control-Allow-Headers", "Content-Type,Authorization").body(thread).build();
     }
 
-    @FunctionName("getThread")
-    public HttpResponseMessage getThread(
-            @HttpTrigger(name = "req", methods = { HttpMethod.GET,
-                    HttpMethod.OPTIONS }, route = "thread/{id}", authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> request,
-            @BindingName("id") String id,
-            final ExecutionContext context) {
-        String allowedOrigin = System.getenv("ALLOWED_ORIGIN");
-
-        if (request.getHttpMethod() == HttpMethod.OPTIONS) {
-            return request.createResponseBuilder(HttpStatus.NO_CONTENT)
-                    .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
-                    .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
-                    .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
-                    .build();
-        }
-
-        Optional<Thread> thread = threadService.fetchThread(id);
-        return thread.map(t -> request.createResponseBuilder(HttpStatus.OK)
-                .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
-                .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
-                .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
-                .body(t).build())
-                .orElseGet(() -> request.createResponseBuilder(HttpStatus.NOT_FOUND)
-                        .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
-                        .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
-                        .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
-                        .build());
-    }
-
-    @FunctionName("updateThread")
-    public HttpResponseMessage updateThread(
-            @HttpTrigger(name = "req", methods = { HttpMethod.PUT,
+    @FunctionName("threadById")
+    public HttpResponseMessage threadById(
+            @HttpTrigger(name = "req", methods = { HttpMethod.GET, HttpMethod.PUT, HttpMethod.DELETE,
                     HttpMethod.OPTIONS }, route = "thread/{id}", authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<ThreadInput>> request,
             @BindingName("id") String id,
             final ExecutionContext context) {
-        String allowedOrigin = System.getenv("ALLOWED_ORIGIN");
 
-        if (request.getHttpMethod() == HttpMethod.OPTIONS) {
+        String allowedOrigin = System.getenv("ALLOWED_ORIGIN");
+        HttpMethod method = request.getHttpMethod();
+
+        // Handle CORS preflight
+        if (method == HttpMethod.OPTIONS) {
             return request.createResponseBuilder(HttpStatus.NO_CONTENT)
                     .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
                     .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
@@ -130,69 +129,85 @@ public class ThreadFunction {
                     .build();
         }
 
-        String authHeader = request.getHeaders().get("authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return request.createResponseBuilder(HttpStatus.UNAUTHORIZED)
+        // GET /thread/{id}
+        if (method == HttpMethod.GET) {
+            Optional<Thread> thread = threadService.fetchThread(id);
+            return thread.map(t -> request.createResponseBuilder(HttpStatus.OK)
                     .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
                     .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
                     .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
-                    .body("Missing or invalid Authorization header").build();
+                    .body(t).build())
+                    .orElseGet(() -> request.createResponseBuilder(HttpStatus.NOT_ACCEPTABLE)
+                            .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
+                            .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                            .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                            .body("Didn't find Thread: " + id)
+                            .build());
         }
-        ThreadInput input = request.getBody().orElse(null);
-        if (input == null) {
-            return request.createResponseBuilder(HttpStatus.BAD_REQUEST).body("Missing thread data").build();
-        }
-        Optional<Thread> updated = threadService.updateThread(id, input);
-        return updated.map(t -> request.createResponseBuilder(HttpStatus.OK)
-                .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
-                .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
-                .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
-                .body(t).build())
-                .orElseGet(() -> request.createResponseBuilder(HttpStatus.NOT_FOUND)
+
+        // PUT /thread/{id}
+        if (method == HttpMethod.PUT) {
+            String authHeader = request.getHeaders().get("authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return request.createResponseBuilder(HttpStatus.UNAUTHORIZED)
                         .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
                         .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
                         .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
-                        .build());
-    }
-
-    @FunctionName("deleteThread")
-    public HttpResponseMessage deleteThread(
-            @HttpTrigger(name = "req", methods = { HttpMethod.DELETE,
-                    HttpMethod.OPTIONS }, route = "thread/{id}", authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> request,
-            @BindingName("id") String id,
-            final ExecutionContext context) {
-        String allowedOrigin = System.getenv("ALLOWED_ORIGIN");
-
-        if (request.getHttpMethod() == HttpMethod.OPTIONS) {
-            return request.createResponseBuilder(HttpStatus.NO_CONTENT)
+                        .body("Missing or invalid Authorization header").build();
+            }
+            ThreadInput input = request.getBody().orElse(null);
+            if (input == null) {
+                return request.createResponseBuilder(HttpStatus.BAD_REQUEST)
+                        .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
+                        .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                        .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                        .body("Missing thread data").build();
+            }
+            Optional<Thread> updated = threadService.updateThread(id, input);
+            return updated.map(t -> request.createResponseBuilder(HttpStatus.OK)
                     .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
                     .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
                     .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
-                    .build();
+                    .body(t).build())
+                    .orElseGet(() -> request.createResponseBuilder(HttpStatus.NOT_FOUND)
+                            .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
+                            .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                            .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                            .build());
         }
 
-        String authHeader = request.getHeaders().get("authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return request.createResponseBuilder(HttpStatus.UNAUTHORIZED)
-                    .body("Missing or invalid Authorization header")
-                    .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
-                    .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
-                    .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
-                    .build();
+        // DELETE /thread/{id}
+        if (method == HttpMethod.DELETE) {
+            String authHeader = request.getHeaders().get("authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return request.createResponseBuilder(HttpStatus.UNAUTHORIZED)
+                        .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
+                        .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                        .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                        .body("Missing or invalid Authorization header").build();
+            }
+            boolean deleted = threadService.deleteThread(id);
+            if (deleted) {
+                return request.createResponseBuilder(HttpStatus.OK)
+                        .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
+                        .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                        .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                        .body("Thread deleted").build();
+            } else {
+                return request.createResponseBuilder(HttpStatus.NOT_FOUND)
+                        .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
+                        .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                        .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                        .build();
+            }
         }
-        boolean deleted = threadService.deleteThread(id);
-        if (deleted) {
-            return request.createResponseBuilder(HttpStatus.OK)
-                    .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
-                    .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
-                    .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
-                    .body("Thread deleted").build();
-        } else {
-            return request.createResponseBuilder(HttpStatus.NOT_FOUND)
-                    .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
-                    .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
-                    .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
-                    .build();
-        }
+
+        // Method not allowed
+        return request.createResponseBuilder(HttpStatus.METHOD_NOT_ALLOWED)
+                .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
+                .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                .body("Method not allowed")
+                .build();
     }
 }

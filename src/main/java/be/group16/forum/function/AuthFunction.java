@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 public class AuthFunction {
@@ -135,4 +136,65 @@ public class AuthFunction {
                                 .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
                                 .body(savedUser).build();
         }
+
+        @FunctionName("me")
+        public HttpResponseMessage me(
+                        @HttpTrigger(name = "req", methods = { HttpMethod.GET,
+                                        HttpMethod.OPTIONS }, route = "auth/me", authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage<Optional<String>> request,
+                        final ExecutionContext context) {
+                String allowedOrigin = System.getenv("ALLOWED_ORIGIN");
+
+                if (request.getHttpMethod() == HttpMethod.OPTIONS) {
+                        return request.createResponseBuilder(HttpStatus.NO_CONTENT)
+                                        .header("Access-Control-Allow-Origin",
+                                                        allowedOrigin != null ? allowedOrigin : "*")
+                                        .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                                        .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                                        .build();
+                }
+
+                String authHeader = request.getHeaders().get("authorization");
+                if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                        return request.createResponseBuilder(HttpStatus.UNAUTHORIZED)
+                                        .header("Access-Control-Allow-Origin",
+                                                        allowedOrigin != null ? allowedOrigin : "*")
+                                        .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                                        .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                                        .body(Map.of("error", "Authorization header is missing or invalid"))
+                                        .build();
+                }
+
+                String token = authHeader.substring(7);
+                String username;
+                try {
+                        username = jwtUtil.validateToken(token);
+                } catch (Exception e) {
+                        return request.createResponseBuilder(HttpStatus.UNAUTHORIZED)
+                                        .header("Access-Control-Allow-Origin",
+                                                        allowedOrigin != null ? allowedOrigin : "*")
+                                        .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                                        .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                                        .body(Map.of("error", "Invalid or expired token"))
+                                        .build();
+                }
+
+                User user = userRepository.findByUsername(username).orElse(null);
+                if (user == null) {
+                        return request.createResponseBuilder(HttpStatus.NOT_FOUND)
+                                        .header("Access-Control-Allow-Origin",
+                                                        allowedOrigin != null ? allowedOrigin : "*")
+                                        .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                                        .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                                        .body(Map.of("error", "User not found"))
+                                        .build();
+                }
+
+                return request.createResponseBuilder(HttpStatus.OK)
+                                .header("Access-Control-Allow-Origin", allowedOrigin != null ? allowedOrigin : "*")
+                                .header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+                                .header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+                                .body(user)
+                                .build();
+        }
+
 }
