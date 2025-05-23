@@ -61,13 +61,13 @@ Install Azure Core Tools
 Compile the backend functions
 
 ```shell
-    mvn clean package
+    mvn clean install
 ```
 Change the OS in the pom.xml depending on your OS.
 
 Run the functions in the backend folder with the command:
 
 ```shell
-    func start
+    mvn azure-functions:run
 ```
 This will start the Azure Functions at [http://localhost:7071/api](http://localhost:7071/api)
