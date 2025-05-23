@@ -1,0 +1,17 @@
+name: Build and Deploy Spring Boot Backend to Azure Web App
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  COSMOSDB_URI: ${{ secrets.COSMOSDB_URI }}
+
+jobs:
+    build-anddeploy:
+        runs-on: ubuntu-latest
+
+        steps:
+          - name: Checkout code
+            uses: actions/checkout@v4
