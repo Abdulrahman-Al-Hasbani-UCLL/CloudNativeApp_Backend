@@ -123,7 +123,8 @@
             <artifactId>azure-functions-maven-plugin</artifactId>
             <version>${azure.functions.maven.plugin.version}</version>
             <configuration>
-                <appName>forum-Y-func</appName>
+                <appName>team16cloudnativefrunctions</appName>
+                <functionAppName>team16cloudnativefrunctions</functionAppName>
                 <runtime>
                 <os>windows</os>
                 <javaVersion>java21</javaVersion>
@@ -155,10 +156,10 @@
                 <configuration>
                     <target>
                     <!-- make sure the staging folder exists -->
-                    <mkdir dir="${project.build.directory}/azure-functions/forum-Y-func/lib"/>
+                    <mkdir dir="${project.build.directory}/azure-functions/team16cloudnativefrunctions/lib"/>
                     <!-- copy the plain jar (no BOOT-INF) -->
                     <copy file="${project.build.directory}/${project.build.finalName}.jar"
-                            tofile="${project.build.directory}/azure-functions/forum-Y-func/lib/${project.build.finalName}.jar"/>
+                            tofile="${project.build.directory}/azure-functions/team16cloudnativefrunctions/lib/${project.build.finalName}.jar"/>
                     </target>
                 </configuration>
                 </execution>

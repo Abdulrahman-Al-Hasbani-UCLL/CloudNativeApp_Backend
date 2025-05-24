@@ -41,6 +41,6 @@ jobs:
         with:
           app-name: 'team16cloudnativefrunctions'
           slot-name: 'Production'
-          package: '${{ env.PACKAGE_DIRECTORY }}'
+          package: '${{ env.PACKAGE_DIRECTORY }}/target/azure-functions/team16cloudnativefrunctions'
           respect-pom-xml: true
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_003DEADCE884427FA28296DB4BB93954 }}
