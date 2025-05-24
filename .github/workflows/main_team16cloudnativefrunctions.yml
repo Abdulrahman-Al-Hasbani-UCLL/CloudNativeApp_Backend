@@ -10,9 +10,9 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_NAME: team16cloudnativefrunctions # set this to your function app name on Azure
-  PACKAGE_DIRECTORY: '.' # set this to the directory which contains pom.xml file
-  JAVA_VERSION: '21' # set this to the java version to use
+  AZURE_FUNCTIONAPP_NAME: team16cloudnativefrunctions
+  PACKAGE_DIRECTORY: '.'
+  JAVA_VERSION: '21'
 
 jobs:
   build-and-deploy:
@@ -32,7 +32,7 @@ jobs:
         shell: pwsh
         run: |
           pushd './${{ env.PACKAGE_DIRECTORY }}'
-          mvn clean package
+          mvn clean install
           popd
       
       - name: 'Run Azure Functions Action'
