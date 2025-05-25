@@ -28,6 +28,11 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'microsoft'
 
+      - name: 'Export Redis secrets'
+        run: |
+          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> $GITHUB_ENV
+          echo "REDIS_KEY=${{ secrets.REDIS_KEY }}" >> $GITHUB_ENV
+
       - name: 'Restore Project Dependencies Using Mvn'
         shell: pwsh
         run: |
