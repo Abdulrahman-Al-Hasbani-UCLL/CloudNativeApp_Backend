@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
 
 import be.group16.forum.model.Thread;
 import be.group16.forum.model.User;
@@ -23,6 +24,7 @@ public class ThreadService {
     private JwtUtil jwtUtil;
 
     // Fetch paginated threads
+    @Cacheable(value = "threads", key = "#page")
     public List<Thread> fetchThreads(int page, int size) {
         return threadRepository.findAll(PageRequest.of(page, size)).getContent();
     }

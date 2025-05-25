@@ -54,6 +54,14 @@ Or to make sure the data is deleted each time the container is stopped
     db.<collectionName>.deleteOne({ username: "test" })
 ```
 
+## Redis for development
+
+### Create container
+
+```shell
+    docker run -d --name cloudnative-redis -p 6379:6379 redis:latest
+```
+
 ## Testing/running Azure functions Locally (for development)
 
 Install Azure Core Tools
